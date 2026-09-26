@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>FlyRank Content Review Prioritization — Vedang Jaiswal</title>
+
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #667085;
+      --border: #e4e7ec;
+      --accent: #4f46e5;
+      --accent-soft: #eef2ff;
+      --green: #067647;
+      --green-soft: #ecfdf3;
+      --orange: #b54708;
+      --orange-soft: #fffaeb;
+      --shadow: 0 10px 30px rgba(16, 24, 40, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    header {
+      background: #101828;
+      color: white;
+      padding: 64px 24px 52px;
+    }
+
+    .header-inner {
+      max-width: 1180px;
+      margin: auto;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.78rem;
+      font-weight: 700;
+      opacity: 0.72;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-size: clamp(2.1rem, 5vw, 4rem);
+      line-height: 1.08;
+      margin: 0 0 18px;
+      max-width: 950px;
+    }
+
+    .subtitle {
+      max-width: 820px;
+      font-size: 1.1rem;
+      color: #d0d5dd;
+      margin: 0;
+    }
+
+    .header-meta {
+      margin-top: 26px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pill {
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      color: #eaecf0;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 30px 20px 80px;
+    }
+
+    .door-nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(246,247,251,0.94);
+      backdrop-filter: blur(10px);
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+    }
+
+    .door-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    button {
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--text);
+      border-radius: 12px;
+      padding: 13px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.92rem;
+    }
+
+    button.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .door {
+      display: none;
+    }
+
+    .door.active {
+      display: block;
+    }
+
+    .purpose {
+      background: var(--accent-soft);
+      border: 1px solid #c7d2fe;
+      border-radius: 16px;
+      padding: 18px 20px;
+      margin-bottom: 24px;
+    }
+
+    .purpose strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    section,
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 28px;
+      margin-bottom: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    h2 {
+      font-size: 1.55rem;
+      margin-top: 0;
+      margin-bottom: 14px;
+    }
+
+    h3 {
+      font-size: 1.12rem;
+      margin-top: 26px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      margin: 0 0 14px;
+    }
+
+    ul,
+    ol {
+      padding-left: 22px;
+    }
+
+    li {
+      margin-bottom: 7px;
+    }
+
+    .question {
+      font-size: 1.35rem;
+      font-weight: 750;
+      line-height: 1.4;
+      padding: 18px;
+      background: #f9fafb;
+      border-left: 4px solid var(--accent);
+      border-radius: 10px;
+      margin: 18px 0;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin: 20px 0;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      background: #fcfcfd;
+    }
+
+    .stat-number {
+      font-size: 1.65rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 6px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .result {
+      padding: 20px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+    }
+
+    .result.model {
+      background: var(--green-soft);
+      border-color: #abefc6;
+    }
+
+    .result.baseline {
+      background: var(--orange-soft);
+      border-color: #fedf89;
+    }
+
+    .result-value {
+      font-size: 2rem;
+      font-weight: 800;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: #f9fafb;
+      font-size: 0.88rem;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .warning {
+      background: var(--orange-soft);
+      border: 1px solid #fedf89;
+      padding: 18px;
+      border-radius: 14px;
+      margin: 18px 0;
+    }
+
+    .success {
+      background: var(--green-soft);
+      border: 1px solid #abefc6;
+      padding: 18px;
+      border-radius: 14px;
+      margin: 18px 0;
+    }
+
+    .workflow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin: 18px 0;
+    }
+
+    .step {
+      background: #f2f4f7;
+      padding: 9px 13px;
+      border-radius: 9px;
+      font-weight: 650;
+    }
+
+    .arrow {
+      color: var(--muted);
+    }
+
+    .chart {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-top: 18px;
+    }
+
+    footer {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .footer-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    @media (max-width: 800px) {
+      .door-buttons {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .result-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      section,
+      .card {
+        padding: 21px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="eyebrow">FlyRank ML Internship · Applied Search Intelligence · 2026</div>
+
+    <h1>
+      Prioritizing Content for Human SEO &amp; Editorial Review
+    </h1>
+
+    <p class="subtitle">
+      A research-stage ranking system using historical search-performance
+      signals to help teams decide which content items to inspect first.
+    </p>
+
+    <div class="header-meta">
+      <span class="pill">16,309 modeling observations</span>
+      <span class="pill">17 clients</span>
+      <span class="pill">5 historical features</span>
+      <span class="pill">Client-grouped validation</span>
+      <span class="pill">Public-safe research artifact</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <nav class="door-nav">
+    <div class="door-buttons">
+      <button class="door-btn active" data-door="reviewer">
+        Door 1 · Reviewer
+      </button>
+
+      <button class="door-btn" data-door="employer">
+        Door 2 · Employer
+      </button>
+
+      <button class="door-btn" data-door="seo">
+        Door 3 · SEO
+      </button>
+    </div>
+  </nav>
+
+
+  <!-- ========================================================= -->
+  <!-- DOOR 1 -->
+  <!-- ========================================================= -->
+
+  <article id="reviewer" class="door active">
+
+    <div class="purpose">
+      <strong>DOOR 1 · ML ENGINEERS &amp; TECHNICAL REVIEWERS</strong>
+      Purpose: credibility through explicit methodology, validation and limitations.
+    </div>
+
+    <section>
+      <h2>Abstract</h2>
+
+      <p>
+        SEO and editorial teams often have more content to review than they
+        can inspect manually, creating a need for transparent ways to
+        prioritize limited review attention.
+      </p>
+
+      <p>
+        This study asks whether historical content-performance signals
+        available before February 28, 2026 can be used to rank content items
+        for human SEO/editorial review.
+      </p>
+
+      <p>
+        A logistic-regression model using five historical performance features
+        was evaluated with a client-grouped validation split and compared with
+        a transparent staleness-and-search-demand baseline.
+      </p>
+
+      <p>
+        On the held-out-client evaluation population, the model achieved
+        <strong>0.7179 ROC-AUC</strong> and
+        <strong>0.9642 Average Precision</strong>, compared with
+        <strong>0.4309 ROC-AUC</strong> and
+        <strong>0.9109 Average Precision</strong> for the baseline.
+      </p>
+
+      <p>
+        The resulting research-stage queue is intended as a directional
+        review-prioritization tool rather than an automated content decision
+        system or a causal claim about the effect of refreshing content.
+      </p>
+    </section>
+
+
+    <section>
+      <h2>1. Introduction &amp; Problem Statement</h2>
+
+      <p>
+        Content teams can have more pages to inspect than their available
+        SEO and editorial review capacity allows. The practical decision is
+        therefore not simply whether a page is "good" or "bad", but which
+        pages deserve attention first.
+      </p>
+
+      <div class="question">
+        Can historical content-performance signals be used to prioritize
+        which content items should receive human SEO/editorial review?
+      </div>
+
+      <p>
+        This study uses information available by
+        <strong>February 28, 2026</strong> and examines its relationship with
+        a subsequent <strong>March 2026 search-impression outcome</strong>.
+      </p>
+
+      <p>
+        The case-study framing is deliberately narrow: the system supports
+        the ordering of limited human review attention. It does not decide
+        whether content should be rewritten, whether a refresh will increase
+        traffic, or what change should be made.
+      </p>
+
+      <div class="workflow">
+        <span class="step">Historical signals</span>
+        <span class="arrow">→</span>
+        <span class="step">Model ranking</span>
+        <span class="arrow">→</span>
+        <span class="step">Human inspection</span>
+        <span class="arrow">→</span>
+        <span class="step">Contextual review</span>
+        <span class="arrow">→</span>
+        <span class="step">Recorded decision</span>
+      </div>
+    </section>
+
+
+    <section>
+      <h2>2. Data</h2>
+
+      <p>
+        The analysis uses the FlyRank internship warehouse and focuses on
+        content-level search-performance information available before the
+        decision date.
+      </p>
+
+      <h3>Dataset release</h3>
+
+      <p>
+        Dataset release:
+        <strong>flyrank_pseudonymized_warehouse_release_v20260703</strong>.
+        The broader release contains approximately 79 million production
+        search-data rows.
+      </p>
+
+      <h3>Source tables</h3>
+
+      <ul>
+        <li><code>fact_content_daily_performance</code></li>
+        <li><code>dim_content</code></li>
+      </ul>
+
+      <h3>Decision and outcome windows</h3>
+
+      <ul>
+        <li><strong>Decision date:</strong> February 28, 2026</li>
+        <li><strong>Historical feature window:</strong> February 2026</li>
+        <li><strong>Outcome window:</strong> March 2026</li>
+      </ul>
+
+      <h3>Modeling population</h3>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-number">16,309</div>
+          <div class="stat-label">modeling observations</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-number">17</div>
+          <div class="stat-label">unique clients</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-number">5</div>
+          <div class="stat-label">model features</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-number">14,439</div>
+          <div class="stat-label">positive outcomes</div>
+        </div>
+      </div>
+
+      <p>
+        The five features were:
+        <code>impressions_30d</code>,
+        <code>clicks_30d</code>,
+        <code>ctr_30d</code>,
+        <code>avg_position_30d</code>, and
+        <code>organic_sessions_30d</code>.
+      </p>
+
+      <p>
+        The outcome was
+        <code>march_had_impressions</code>: 1 when March GSC impressions
+        were greater than zero, otherwise 0.
+      </p>
+
+      <p>
+        Content was eligible only when an update date existed and was on or
+        before the decision date.
+      </p>
+    </section>
+
+
+    <section>
+      <h2>3. Methodology</h2>
+
+      <h3>Model</h3>
+
+      <p>
+        The model is a pipeline consisting of
+        <strong>StandardScaler + LogisticRegression</strong>.
+        The model produces a score used for ranking.
+      </p>
+
+      <h3>Baseline</h3>
+
+      <p>
+        The transparent baseline is:
+      </p>
+
+      <div class="question">
+        days_since_update × log(1 + search_volume)
+      </div>
+
+      <p>
+        This baseline combines content age with available search demand and
+        provides an interpretable comparison before relying on the learned
+        model.
+      </p>
+
+      <h3>Validation design</h3>
+
+      <p>
+        The primary validation split is grouped by client. Training used
+        <strong>13,693 observations</strong> across
+        <strong>13 clients</strong>; evaluation used
+        <strong>2,616 observations</strong> from
+        <strong>4 held-out clients</strong>.
+      </p>
+
+      <div class="success">
+        <strong>Client overlap: 0.</strong><br>
+        No client appeared in both the training and held-out evaluation
+        groups.
+      </div>
+
+      <p>
+        This design is intended to test whether the ranking signal transfers
+        across clients rather than benefiting from seeing observations from
+        the same client during training.
+      </p>
+
+      <h3>Leakage checks</h3>
+
+      <ul>
+        <li>Features are based on February information.</li>
+        <li>The target is based on March information.</li>
+        <li>The target is not included in the feature frame.</li>
+        <li>No future/outcome tokens were used as features.</li>
+        <li>Feature columns were checked for missingness and type consistency.</li>
+      </ul>
+
+      <p class="note">
+        These checks reduce obvious leakage risks; they do not establish that
+        every possible source of dataset bias or temporal drift has been
+        eliminated.
+      </p>
+    </section>
+
+
+    <section>
+      <h2>4. Results vs Baseline</h2>
+
+      <p>
+        The primary comparison uses the same held-out-client evaluation
+        population for both methods.
+      </p>
+
+      <div class="result-grid">
+
+        <div class="result model">
+          <h3>Logistic Regression</h3>
+          <div class="result-value">0.7179</div>
+          <strong>ROC-AUC</strong>
+          <p>Average Precision: <strong>0.9642</strong></p>
+        </div>
+
+        <div class="result baseline">
+          <h3>Staleness + Demand</h3>
+          <div class="result-value">0.4309</div>
+          <strong>ROC-AUC</strong>
+          <p>Average Precision: <strong>0.9109</strong></p>
+        </div>
+
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>ROC-AUC</th>
+            <th>Average Precision</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr>
+            <td>Staleness + demand baseline</td>
+            <td>0.4309</td>
+            <td>0.9109</td>
+          </tr>
+
+          <tr>
+            <td><strong>Logistic regression</strong></td>
+            <td><strong>0.7179</strong></td>
+            <td><strong>0.9642</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <img
+        class="chart"
+        src="../figures/capstone_model_vs_baseline.png"
+        alt="Model versus baseline validation metrics"
+      >
+
+      <p class="note">
+        The figure shows the evaluated model and baseline on the same
+        validation population.
+      </p>
+
+      <p>
+        These results indicate stronger ranking performance for the model on
+        the evaluated held-out-client population. They do not establish
+        production performance, calibrated probabilities, causal refresh
+        impact, or performance across all possible future clients.
+      </p>
+    </section>
+
+
+    <section>
+      <h2>5. Limitations &amp; Honest Framing</h2>
+
+      <ul>
+        <li>This is a research-stage analysis, not a production deployment.</li>
+        <li>The target is March search impressions, not refresh success.</li>
+        <li>Only four clients were held out for the primary evaluation.</li>
+        <li>The five features do not represent every factor affecting search performance.</li>
+        <li>Historical relationships may change as data distributions change.</li>
+        <li>The 0.75 high-signal cutoff is a heuristic, not a validated business threshold.</li>
+        <li>Model scores are not calibrated probabilities.</li>
+        <li>No causal claim is made about refreshing content.</li>
+        <li>Content age alone is insufficient evidence for an automatic refresh.</li>
+      </ul>
+
+      <div class="warning">
+        <strong>Human review remains required.</strong>
+        The model ranks items for inspection. It does not automatically
+        rewrite, publish, delete, redirect, canonicalize, or otherwise modify
+        content.
+      </div>
+    </section>
+
+
+    <section>
+      <h2>6. Ranked Recommendations</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Priority</th>
+            <th>Queue category</th>
+            <th>Rows</th>
+            <th>Intended action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><strong>HIGH_MODEL_SIGNAL</strong></td>
+            <td>12,787</td>
+            <td>PROTECT_REVIEW</td>
+          </tr>
+
+          <tr>
+            <td>2</td>
+            <td><strong>MONITOR</strong></td>
+            <td>3,469</td>
+            <td>MONITOR</td>
+          </tr>
+
+          <tr>
+            <td>3</td>
+            <td><strong>HIGH_SIGNAL_STALE</strong></td>
+            <td>53</td>
+            <td>REFRESH_REVIEW</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        The final research queue contains <strong>16,309</strong> rows.
+        A model score of at least 0.75 occurs for approximately
+        <strong>78.73%</strong> of the modeling population.
+      </p>
+
+      <h3>Recommended human workflow</h3>
+
+      <div class="workflow">
+        <span class="step">Rank</span>
+        <span class="arrow">→</span>
+        <span class="step">Inspect evidence</span>
+        <span class="arrow">→</span>
+        <span class="step">Check search intent</span>
+        <span class="arrow">→</span>
+        <span class="step">Check freshness</span>
+        <span class="arrow">→</span>
+        <span class="step">Human decision</span>
+        <span class="arrow">→</span>
+        <span class="step">Record outcome</span>
+      </div>
+
+      <p>
+        The queue should therefore be treated as a prioritization layer
+        between historical data and human review, rather than as an
+        autonomous content-optimization system.
+      </p>
+    </section>
+
+
+    <section>
+      <h2>7. Artifacts &amp; Reproducibility</h2>
+
+      <p>
+        The research artifacts include the capstone notebook, W07 action
+        playbook, validation metrics, and generated figures.
+      </p>
+
+      <ul>
+        <li><code>work/notebooks/capstone.ipynb</code></li>
+        <li><code>work/notebooks/w07_action_playbook.ipynb</code></li>
+        <li><code>work/outputs/w07_playbook_metrics.json</code></li>
+        <li><code>work/figures/capstone_model_vs_baseline.png</code></li>
+        <li><code>work/figures/w07_reason_code_distribution.png</code></li>
+      </ul>
+
+      <p>
+        The final capstone notebook includes a self-check covering the
+        modeling population, clients, validation metrics, recommendation
+        counts, and required figures.
+      </p>
+
+      <p>
+        Repository:
+        <a
+          href="https://github.com/Veduisback/flyrank-ml-internship-starter"
+          target="_blank"
+          rel="noopener"
+        >
+          GitHub repository
+        </a>
+      </p>
+    </section>
+
+  </article>
+
+
+  <!-- ========================================================= -->
+  <!-- DOOR 2 -->
+  <!-- ========================================================= -->
+
+  <article id="employer" class="door">
+
+    <div class="purpose">
+      <strong>DOOR 2 · EMPLOYERS &amp; INTERVIEWS</strong>
+      Purpose: show the ability to turn a messy business question into a
+      validated ML workflow.
+    </div>
+
+    <section>
+      <h2>What I built</h2>
+
+      <p>
+        I built a research-stage content-prioritization system for an SEO and
+        editorial review workflow.
+      </p>
+
+      <p>
+        Instead of trying to automatically decide what content should be
+        changed, the system answers a narrower operational question:
+      </p>
+
+      <div class="question">
+        Which content items should a reviewer inspect first?
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-number">16,309</div>
+          <div class="stat-label">modeling observations</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-number">17</div>
+          <div class="stat-label">clients</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-number">5</div>
+          <div class="stat-label">historical signals</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-number">4</div>
+          <div class="stat-label">held-out clients</div>
+        </div>
+      </div>
+    </section>
+
+
+    <section>
+      <h2>What data?</h2>
+
+      <p>
+        The project uses the FlyRank pseudonymized internship warehouse,
+        release
+        <strong>flyrank_pseudonymized_warehouse_release_v20260703</strong>.
+        The broader release contains approximately 79 million production
+        search-data rows.
+      </p>
+
+      <p>
+        I constructed a decision-time dataset using February 2026 historical
+        performance signals and evaluated their relationship with a March
+        2026 search-impression outcome.
+      </p>
+
+      <p>
+        The five model inputs were historical impressions, clicks, CTR,
+        average position, and organic sessions.
+      </p>
+    </section>
+
+
+    <section>
+      <h2>How I evaluated it</h2>
+
+      <p>
+        The main model is a standardized logistic regression.
+        I compared it with a transparent baseline based on content age and
+        search demand.
+      </p>
+
+      <p>
+        Rather than randomly mixing observations from the same clients,
+        validation held out entire clients.
+      </p>
+
+      <div class="success">
+        <strong>
+          13 training clients → 4 held-out clients → 0 client overlap
+        </strong>
+      </div>
+
+      <p>
+        This makes the evaluation closer to the question of whether a
+        historical ranking signal transfers to clients it did not train on.
+      </p>
+    </section>
+
+
+    <section>
+      <h2>What did it show?</h2>
+
+      <div class="result-grid">
+
+        <div class="result model">
+          <h3>Model</h3>
+          <div class="result-value">0.7179</div>
+          <strong>ROC-AUC</strong>
+          <p>Average Precision: <strong>0.9642</strong></p>
+        </div>
+
+        <div class="result baseline">
+          <h3>Baseline</h3>
+          <div class="result-value">0.4309</div>
+          <strong>ROC-AUC</strong>
+          <p>Average Precision: <strong>0.9109</strong></p>
+        </div>
+
+      </div>
+
+      <p>
+        On the evaluated held-out-client population, the model produced
+        stronger ranking metrics than the transparent baseline.
+      </p>
+
+      <p>
+        The result is useful as evidence for a research-stage prioritization
+        workflow. It is not evidence that the model will produce the same
+        performance in production or that changing a page because it scored
+        highly will improve traffic.
+      </p>
+    </section>
+
+
+    <section>
+      <h2>The engineering judgment</h2>
+
+      <p>
+        The important design decision was not simply choosing a model.
+        It was defining what the model was allowed to do.
+      </p>
+
+      <ul>
+        <li>The model supplies a ranking signal.</li>
+        <li>The queue includes human-readable reason codes.</li>
+        <li>Reviewers inspect the underlying content and search context.</li>
+        <li>The model does not automatically rewrite or publish content.</li>
+        <li>The 0.75 signal cutoff is treated as a heuristic.</li>
+        <li>Scores are not presented as calibrated probabilities.</li>
+      </ul>
+
+      <p>
+        This turns the model from an isolated prediction experiment into a
+        documented decision-support workflow.
+      </p>
+    </section>
+
+
+    <section>
+      <h2>What I would improve next</h2>
+
+      <ol>
+        <li>Evaluate additional time periods.</li>
+        <li>Test score calibration before introducing thresholds.</li>
+        <li>Measure whether acting on the queue actually changes outcomes.</li>
+        <li>Monitor feature and outcome drift before considering production use.</li>
+      </ol>
+    </section>
+
+  </article>
+
+
+  <!-- ========================================================= -->
+  <!-- DOOR 3 -->
+  <!-- ========================================================= -->
+
+  <article id="seo" class="door">
+
+    <div class="purpose">
+      <strong>DOOR 3 · SEO COMMUNITY</strong>
+      Purpose: explain the practical content-review problem without requiring
+      ML expertise.
+    </div>
+
+    <section>
+      <h2>Which content should you review first?</h2>
+
+      <p>
+        A large content portfolio creates a simple operational problem:
+        there can be more pages worth inspecting than a team has time to
+        review.
+      </p>
+
+      <p>
+        This project asks whether historical search-performance data can help
+        create a better starting order for that review queue.
+      </p>
+
+      <div class="question">
+        The goal is not "automate SEO." The goal is "help a person decide
+        where to look first."
+      </div>
+    </section>
+
+
+    <section>
+      <h2>What I measured</h2>
+
+      <p>
+        The analysis uses a pseudonymized FlyRank search-data warehouse
+        release containing approximately 79 million production rows.
+      </p>
+
+      <p>
+        For the modeling population, I used historical February 2026
+        performance and examined whether the content subsequently had search
+        impressions during March 2026.
+      </p>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-number">16,309</div>
+          <div class="stat-label">content/client observations</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-number">17</div>
+          <div class="stat-label">clients</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-number">5</div>
+          <div class="stat-label">historical signals</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-number">78.73%</div>
+          <div class="stat-label">high-signal share</div>
+        </div>
+      </div>
+    </section>
+
+
+    <section>
+      <h2>The method, in plain English</h2>
+
+      <p>
+        First, there is a simple baseline: combine how long ago content was
+        updated with the amount of search demand associated with it.
+      </p>
+
+      <p>
+        Then a logistic-regression model looks at five historical performance
+        signals:
+      </p>
+
+      <ul>
+        <li>30-day impressions</li>
+        <li>30-day clicks</li>
+        <li>30-day CTR</li>
+        <li>30-day average position</li>
+        <li>30-day organic sessions</li>
+      </ul>
+
+      <p>
+        The model does not tell an editor what to change. It creates an
+        ordering: higher-ranked items get inspected earlier.
+      </p>
+
+      <div class="workflow">
+        <span class="step">Data</span>
+        <span class="arrow">→</span>
+        <span class="step">Ranking</span>
+        <span class="arrow">→</span>
+        <span class="step">Human review</span>
+        <span class="arrow">→</span>
+        <span class="step">Decision</span>
+      </div>
+    </section>
+
+
+    <section>
+      <h2>Did it work?</h2>
+
+      <p>
+        The evaluation held out four entire clients so that the model was
+        tested on clients it did not train on.
+      </p>
+
+      <div class="result-grid">
+
+        <div class="result model">
+          <h3>Logistic regression</h3>
+          <div class="result-value">0.7179</div>
+          <strong>ROC-AUC</strong>
+          <p>Average Precision: <strong>0.9642</strong></p>
+        </div>
+
+        <div class="result baseline">
+          <h3>Age + search demand</h3>
+          <div class="result-value">0.4309</div>
+          <strong>ROC-AUC</strong>
+          <p>Average Precision: <strong>0.9109</strong></p>
+        </div>
+
+      </div>
+
+      <p>
+        On this evaluated population, the model produced stronger ranking
+        metrics than the baseline.
+      </p>
+
+      <p class="note">
+        Important: this is a ranking result, not proof that a content refresh
+        will increase traffic.
+      </p>
+    </section>
+
+
+    <section>
+      <h2>What should a team actually do?</h2>
+
+      <p>
+        The resulting research queue contains three main review categories:
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Rows</th>
+            <th>Workflow</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr>
+            <td>HIGH_MODEL_SIGNAL</td>
+            <td>12,787</td>
+            <td>Protect/review</td>
+          </tr>
+
+          <tr>
+            <td>MONITOR</td>
+            <td>3,469</td>
+            <td>Continue monitoring</td>
+          </tr>
+
+          <tr>
+            <td>HIGH_SIGNAL_STALE</td>
+            <td>53</td>
+            <td>Refresh review</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        The intended workflow is simple:
+      </p>
+
+      <div class="workflow">
+        <span class="step">Rank</span>
+        <span class="arrow">→</span>
+        <span class="step">Inspect page</span>
+        <span class="arrow">→</span>
+        <span class="step">Check intent</span>
+        <span class="arrow">→</span>
+        <span class="step">Check freshness</span>
+        <span class="arrow">→</span>
+        <span class="step">Human decision</span>
+      </div>
+    </section>
+
+
+    <section>
+      <h2>What this does NOT prove</h2>
+
+      <ul>
+        <li>A high score does not prove a page needs a refresh.</li>
+        <li>A high score does not prove a specific edit will increase traffic.</li>
+        <li>The model score is not a calibrated probability.</li>
+        <li>Content age is not a causal explanation for performance.</li>
+        <li>The evaluation does not establish production performance.</li>
+      </ul>
+
+      <div class="warning">
+        The useful output is a better starting order for human attention —
+        not an automated SEO decision.
+      </div>
+    </section>
+
+
+    <section>
+      <h2>The main takeaway</h2>
+
+      <p>
+        Historical search-performance signals can provide a useful research
+        signal for prioritizing human review on the evaluated population.
+      </p>
+
+      <p>
+        The strongest next step is not to automatically change more pages.
+        It is to test the workflow over additional time periods and eventually
+        measure whether acting on the queue produces a measurable outcome.
+      </p>
+    </section>
+
+  </article>
+
+</main>
+
+
+<footer>
+  <div class="footer-card">
+    <strong>Acknowledgments &amp; Data Credit</strong>
+
+    <p>
+      Built on the <strong>FlyRank ML Internship dataset</strong>.
+      Data credit:
+      <a href="https://flyrank.ai" target="_blank" rel="noopener">
+        flyrank.ai
+      </a>.
+    </p>
+
+    <p>
+      Research repository:
+      <a
+        href="https://github.com/Veduisback/flyrank-ml-internship-starter"
+        target="_blank"
+        rel="noopener"
+      >
+        Veduisback/flyrank-ml-internship-starter
+      </a>
+    </p>
+
+    <p class="note">
+      This page is a public-safe research artifact. Client identities,
+      private queries and private URLs are intentionally excluded.
+    </p>
+  </div>
+</footer>
+
+
+<script>
+  const buttons = document.querySelectorAll(".door-btn");
+  const doors = document.querySelectorAll(".door");
+
+  buttons.forEach(button => {
+    button.addEventListener("click", () => {
+      const selected = button.dataset.door;
+
+      buttons.forEach(btn => {
+        btn.classList.remove("active");
+      });
+
+      doors.forEach(door => {
+        door.classList.remove("active");
+      });
+
+      button.classList.add("active");
+      document.getElementById(selected).classList.add("active");
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
